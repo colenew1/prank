@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Snapshot Dashboard v3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 30% 70%;
+            min-height: 80vh;
+        }
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #e9ecef;
+            position: relative;
+            overflow: visible;
+        }
+        .results-section {
+            padding: 30px;
+            background: white;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .submit-btn-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 60px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        .client-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .checkbox-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .checkbox-item.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .comparison-toggle {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            overflow: hidden;
+        }
+        .toggle-option {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: white;
+            font-size: 16px;
+        }
+        .toggle-option.active {
+            background: #667eea;
+            color: white;
+        }
+        .period-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            z-index: 1000;
+        }
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        .warning-banner {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .warning-banner .icon {
+            font-size: 20px;
+        }
+        .results-grid {
+            display: grid;
+            gap: 25px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        .metric-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .change-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .change-positive {
+            color: #10b981;
+        }
+        .change-negative {
+            color: #ef4444;
+        }
+        .change-neutral {
+            color: #6b7280;
+        }
+        .coaching-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .coaching-period {
+            text-align: center;
+        }
+        .coaching-sessions {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .coaching-effectiveness {
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+        .coaching-change {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f8f9fa;
+        }
+        .behaviors-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .behavior-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .behavior-name {
+            font-weight: 500;
+            color: #495057;
+        }
+        .behavior-stats {
+            text-align: right;
+        }
+        .behavior-sessions {
+            font-weight: 600;
+            color: #667eea;
+        }
+        .behavior-percent {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .narrative-summary {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .narrative-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .narrative-text {
+            line-height: 1.6;
+            color: #495057;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .action-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        .case-study-box {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            display: none;
+        }
+        .case-study-box.visible {
+            display: block;
+        }
+        .case-study-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            color: #333;
+            font-size: 1.05rem;
+        }
+        .case-study-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .no-data-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .ai-summary {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .ai-summary::before {
+            content: '🤖';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+        }
+        .ai-summary-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ai-summary-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #1e40af;
+            font-weight: 500;
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            height: 20px;
+            margin-bottom: 10px;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .behavior-expandable {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .behavior-header {
+            padding: 15px;
+            background: #f9fafb;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .behavior-header:hover {
+            background: #f3f4f6;
+        }
+        .behavior-header.expanded {
+            background: #eff6ff;
+            border-bottom-color: #3b82f6;
+        }
+        .behavior-title {
+            font-weight: 600;
+            color: #374151;
+        }
+        .behavior-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+        }
+        .expand-icon {
+            transition: transform 0.3s ease;
+            color: #6b7280;
+        }
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+        .behavior-content {
+            padding: 15px;
+            display: none;
+        }
+        .behavior-content.expanded {
+            display: block;
+        }
+        .behavior-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .sub-behaviors {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+        }
+        .sub-behavior-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .sub-behavior-item:last-child {
+            border-bottom: none;
+        }
+        .sub-behavior-name {
+            color: #475569;
+            font-weight: 500;
+        }
+        .sub-behavior-stats {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .coming-soon {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 20px;
+        }
+        .data-quality-badge {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: #166534;
+        }
+        .data-quality-badge span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+        .data-quality-badge .emoji {
+            font-size: 1.1rem;
+        }
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .form-section {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+        }
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            .header {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .form-section,
+            .results-section {
+                padding: 20px;
+            }
+            .metric-comparison {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .coaching-comparison {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .behaviors-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .period-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Brand Snapshot Dashboard v3</h1>
+            <p>Performance + Coaching Intelligence</p>
+        </div>
+        <div class="main-content">
+            <!-- Form Section -->
+            <div class="form-section">
+                <form id="snapshotForm">
+                    <div class="form-group">
+                        <label>Select Clients *</label>
+                        <div class="client-checkboxes">
+                            <div class="checkbox-item" data-client="TTEC">
+                                <input type="checkbox" id="client-ttec" value="TTEC">
+                                <label for="client-ttec">TTEC</label>
+                            </div>
+                            <div class="checkbox-item" data-client="Alorica">
+                                <input type="checkbox" id="client-alorica" value="Alorica">
+                                <label for="client-alorica">Alorica</label>
+                            </div>
+                            <div class="checkbox-item" data-client="TP">
+                                <input type="checkbox" id="client-tp" value="TP">
+                                <label for="client-tp">TP</label>
+                            </div>
+                        </div>
+                        <div id="client-error" class="error-message" style="display: none;">
+                            Please select at least one client.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="organization">Organization</label>
+                        <select id="organization" class="form-control">
+                            <option value="UHC">UHC</option>
+                            <option value="Anthem">Anthem</option>
+                            <option value="Cigna">Cigna</option>
+                            <option value="Aetna">Aetna</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="metric">Metric</label>
+                        <select id="metric" class="form-control">
+                            <option value="NPS">NPS</option>
+                            <option value="AHT">AHT</option>
+                            <option value="QA">QA</option>
+                            <option value="CSAT">CSAT</option>
+                            <option value="FCR">FCR</option>
+                            <option value="TRANSFER_RATE">Transfer Rate</option>
+                            <option value="ATTENDANCE">Attendance</option>
+                            <option value="RELEASE_RATE">Release Rate</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <input type="number" id="year" class="form-control" value="2025" min="2020" max="2030">
+                    </div>
+                    <div class="form-group">
+                        <label>Comparison Type</label>
+                        <div class="comparison-toggle">
+                            <button type="button" class="toggle-option active" data-type="month">Month</button>
+                            <button type="button" class="toggle-option" data-type="quarter">Quarter</button>
+                        </div>
+                    </div>
+                    <div id="month-inputs" class="form-group">
+                        <div class="period-inputs">
+                            <div>
+                                <label for="current-month">Current Month</label>
+                                <select id="current-month" class="form-control">
+                                    <option value="Jan">January</option>
+                                    <option value="Feb">February</option>
+                                    <option value="Mar">March</option>
+                                    <option value="Apr">April</option>
+                                    <option value="May">May</option>
+                                    <option value="Jun">June</option>
+                                    <option value="Jul" selected>July</option>
+                                    <option value="Aug">August</option>
+                                    <option value="Sep">September</option>
+                                    <option value="Oct">October</option>
+                                    <option value="Nov">November</option>
+                                    <option value="Dec">December</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="previous-month">Previous Month</label>
+                                <select id="previous-month" class="form-control">
+                                    <option value="Jan">January</option>
+                                    <option value="Feb">February</option>
+                                    <option value="Mar">March</option>
+                                    <option value="Apr">April</option>
+                                    <option value="May">May</option>
+                                    <option value="Jun" selected>June</option>
+                                    <option value="Jul">July</option>
+                                    <option value="Aug">August</option>
+                                    <option value="Sep">September</option>
+                                    <option value="Oct">October</option>
+                                    <option value="Nov">November</option>
+                                    <option value="Dec">December</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="quarter-inputs" class="form-group" style="display: none;">
+                        <div class="period-inputs">
+                            <div>
+                                <label for="current-quarter">Current Quarter</label>
+                                <select id="current-quarter" class="form-control">
+                                    <option value="Q1">Q1 (Jan-Mar)</option>
+                                    <option value="Q2">Q2 (Apr-Jun)</option>
+                                    <option value="Q3" selected>Q3 (Jul-Sep)</option>
+                                    <option value="Q4">Q4 (Oct-Dec)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="previous-quarter">Previous Quarter</label>
+                                <select id="previous-quarter" class="form-control">
+                                    <option value="Q1">Q1 (Jan-Mar)</option>
+                                    <option value="Q2" selected>Q2 (Apr-Jun)</option>
+                                    <option value="Q3">Q3 (Jul-Sep)</option>
+                                    <option value="Q4">Q4 (Oct-Dec)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="submit-btn-wrapper">
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            <div class="loading-spinner" id="loadingSpinner"></div>
+                            Generate Snapshot
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- Results Section -->
+            <div class="results-section">
+                <div id="results-content">
+                    <div class="no-data">
+                        <div class="no-data-icon">📊</div>
+                        <h3>Ready to Generate Your Snapshot</h3>
+                        <p>Fill out the form on the left and click "Generate Snapshot" to view performance metrics and coaching insights.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Global variables
+        let currentComparisonType = 'month';
+        let lastResponse = null;
+        
+        // DOM elements
+        const form = document.getElementById('snapshotForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsContent = document.getElementById('results-content');
+        const clientError = document.getElementById('client-error');
+        
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            // Wait a bit for layout to settle before initializing prank
+            setTimeout(function() {
+                initializeButtonPrank();
+            }, 100);
+        });
+        
+        function initializeEventListeners() {
+            // Form submission
+            form.addEventListener('submit', handleFormSubmit);
+            
+            // Comparison type toggle
+            document.querySelectorAll('.toggle-option').forEach(button => {
+                button.addEventListener('click', handleComparisonToggle);
+            });
+            
+            // Client checkbox handling
+            document.querySelectorAll('.checkbox-item').forEach(item => {
+                item.addEventListener('click', handleClientCheckbox);
+            });
+            
+            // Checkbox inputs
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', handleClientSelection);
+            });
+        }
+        
+        function handleComparisonToggle(event) {
+            const type = event.target.dataset.type;
+            
+            // Update active state
+            document.querySelectorAll('.toggle-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show/hide appropriate inputs
+            const monthInputs = document.getElementById('month-inputs');
+            const quarterInputs = document.getElementById('quarter-inputs');
+            
+            if (type === 'month') {
+                monthInputs.style.display = 'block';
+                quarterInputs.style.display = 'none';
+                currentComparisonType = 'month';
+            } else {
+                monthInputs.style.display = 'none';
+                quarterInputs.style.display = 'block';
+                currentComparisonType = 'quarter';
+            }
+        }
+        
+        function handleClientCheckbox(event) {
+            const checkbox = event.currentTarget.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            handleClientSelection();
+        }
+        
+        function handleClientSelection() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const clientItems = document.querySelectorAll('.checkbox-item');
+            
+            // Update visual state
+            clientItems.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // Validate selection
+            if (checkboxes.length === 0) {
+                clientError.style.display = 'block';
+                submitBtn.disabled = true;
+            } else {
+                clientError.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const formData = getFormData();
+            
+            // Validate form
+            if (!validateForm(formData)) {
+                return;
+            }
+            
+            // Show loading state
+            setLoadingState(true);
+            
+            try {
+                // Determine API URL (use relative path for Vercel, or full URL for local dev)
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000/api/snapshot'
+                    : '/api/snapshot';
+                
+                console.log('Making API request to:', apiUrl);
+                console.log('Request payload:', formData);
+                
+                // Make API call
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                }).catch(fetchError => {
+                    // Handle network errors (CORS, connection refused, etc.)
+                    console.error('Fetch error details:', fetchError);
+                    throw new Error(`Network error: ${fetchError.message}. Please check if the API endpoint is accessible.`);
+                });
+                
+                if (!response.ok) {
+                    // Check if response is JSON or HTML
+                    const contentType = response.headers.get('content-type') || '';
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    
+                    if (contentType.includes('application/json')) {
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.message || errorData.error || errorMessage;
+                        } catch (e) {
+                            // If JSON parsing fails, use default message
+                        }
+                    } else {
+                        // If it's HTML (like a Vercel error page), get text instead
+                        try {
+                            const errorText = await response.text();
+                            errorMessage = `Server error (${response.status}). The API endpoint may not be configured correctly.`;
+                            console.error('Server returned HTML error page. Check Vercel function logs.');
+                            console.error('Response preview:', errorText.substring(0, 300));
+                        } catch (e) {
+                            // If text parsing fails, use default message
+                        }
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    console.error('Failed to parse JSON response:', parseError);
+                    const responseText = await response.text();
+                    console.error('Response was:', responseText.substring(0, 500));
+                    throw new Error('Server returned invalid JSON. Check console and Vercel logs for details.');
+                }
+                lastResponse = data;
+                
+                // Display results
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                displayError('Failed to fetch data: ' + error.message);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        function getFormData() {
+            const selectedClients = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            const formData = {
+                clients: selectedClients,
+                organization: document.getElementById('organization').value,
+                metric_name: document.getElementById('metric').value,
+                year: parseInt(document.getElementById('year').value),
+                comparison_type: currentComparisonType
+            };
+            
+            if (currentComparisonType === 'month') {
+                formData.current_month = document.getElementById('current-month').value;
+                formData.previous_month = document.getElementById('previous-month').value;
+            } else {
+                formData.current_quarter = document.getElementById('current-quarter').value;
+                formData.previous_quarter = document.getElementById('previous-quarter').value;
+            }
+            
+            return formData;
+        }
+        
+        function validateForm(formData) {
+            if (formData.clients.length === 0) {
+                clientError.style.display = 'block';
+                return false;
+            }
+            return true;
+        }
+        
+        function setLoadingState(loading) {
+            if (loading) {
+                submitBtn.disabled = true;
+                loadingSpinner.style.display = 'inline-block';
+                submitBtn.innerHTML = '<div class="loading-spinner"></div>Generating...';
+                showSkeletonLoading();
+            } else {
+                submitBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
+                submitBtn.innerHTML = 'Generate Snapshot';
+            }
+        }
+        
+        function showSkeletonLoading() {
+            resultsContent.innerHTML = `
+                <div class="ai-summary">
+                    <div class="skeleton" style="height: 30px; margin-bottom: 15px;"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton" style="width: 60%;"></div>
+                </div>
+                <div class="data-quality-badge">
+                    <div class="skeleton" style="height: 20px; width: 200px;"></div>
+                    <div class="skeleton" style="height: 20px; width: 150px;"></div>
+                    <div class="skeleton" style="height: 20px; width: 180px;"></div>
+                </div>
+                <div class="card">
+                    <div class="skeleton" style="height: 40px; margin-bottom: 20px;"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                        <div class="skeleton" style="height: 80px;"></div>
+                        <div class="skeleton" style="height: 80px;"></div>
+                        <div class="skeleton" style="height: 80px;"></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayResults(data) {
+            console.log('Full API Response:', data);
+            console.log('Coaching Activity Data:', {
+                current: data.coaching_activity?.current,
+                previous: data.coaching_activity?.previous,
+                change: data.coaching_activity?.change
+            });
+            console.log('Top Behaviors Current:', data.coaching_activity?.current?.top_behaviors);
+            console.log('Top Behaviors Previous:', data.coaching_activity?.previous?.top_behaviors);
+            
+            // Log debug_info prominently
+            if (data.debug_info) {
+                console.log('=== DEBUG INFO ===');
+                console.log('Total records in DB:', data.debug_info.total_records_in_db);
+                console.log('Records matching org+year:', data.debug_info.records_matching_org_year);
+                console.log('Filter breakdown:', data.debug_info.filter_breakdown);
+                console.log('Search criteria:', data.debug_info.search_criteria);
+                console.log('Current coaching records found:', data.debug_info.current_coaching_records);
+                console.log('Previous coaching records found:', data.debug_info.previous_coaching_records);
+                console.log('Sample DB record:', data.debug_info.sample_db_record);
+                console.log('Full debug_info:', JSON.stringify(data.debug_info, null, 2));
+                console.log('=== END DEBUG INFO ===');
+            } else {
+                console.warn('⚠️ debug_info is missing from response!');
+            }
+            
+            // Handle array response (from n8n webhook)
+            if (Array.isArray(data) && data.length > 0) {
+                data = data[0];
+            }
+            
+            let html = '';
+            
+            // AI Summary Section (TOP)
+            if (data.ai_summary && data.ai_summary.trim() !== '') {
+                html += `
+                    <div class="ai-summary">
+                        <div class="ai-summary-title">AI Analysis</div>
+                        <div class="ai-summary-text">${data.ai_summary}</div>
+                    </div>
+                `;
+            } else {
+                // Generate AI Summary from the data since it's missing
+                const generateAISummary = () => {
+                    const metric = data.snapshot_metadata?.metric || 'Performance';
+                    const percentChange = data.snapshot_metadata?.comparison?.percent_change || '0%';
+                    const currentValue = data.snapshot_metadata?.comparison?.current_value || '0';
+                    const currentPeriod = data.snapshot_metadata?.comparison?.current_period || 'current period';
+                    const currentSessions = data.coaching_activity?.current?.total_coaching_sessions || 0;
+                    const volumeChange = data.coaching_activity?.change?.coaching_volume_change_pct || '0%';
+                    const topBehavior = data.coaching_activity?.current?.top_behaviors?.[0];
+                    
+                    let summary = `${metric} ${percentChange.includes('-') ? 'declined' : 'improved'} by ${Math.abs(parseFloat(percentChange)).toFixed(1)}% to ${currentValue} in ${currentPeriod}, `;
+                    
+                    if (Math.abs(parseFloat(volumeChange)) > 5) {
+                        summary += `with ${Math.abs(parseFloat(volumeChange)).toFixed(1)}% ${volumeChange.includes('-') ? 'reduction' : 'increase'} in coaching activity. `;
+                    } else {
+                        summary += `with stable coaching activity levels. `;
+                    }
+                    
+                    if (topBehavior) {
+                        summary += `Teams focused heavily on "${topBehavior.behavior}" with ${topBehavior.percent_of_total} of sessions, `;
+                        summary += `demonstrating strategic prioritization of key performance drivers.`;
+                    } else {
+                        summary += `Strategic coaching focus continues to drive performance improvements.`;
+                    }
+                    
+                    return summary;
+                };
+                
+                const generatedSummary = generateAISummary();
+                html += `
+                    <div class="ai-summary">
+                        <div class="ai-summary-title">AI Analysis</div>
+                        <div class="ai-summary-text">${generatedSummary}</div>
+                    </div>
+                `;
+            }
+            
+            // Data Quality Badge
+            const dataQuality = data.snapshot_metadata?.data_quality || {};
+            html += `
+                <div class="data-quality-badge">
+                    <span><span class="emoji">📊</span> Based on ${dataQuality.total_metric_data_points || 'N/A'} ${data.snapshot_metadata?.metric} data points</span>
+                    <span><span class="emoji">👥</span> ${data.snapshot_metadata?.programs_count} programs</span>
+                    <span><span class="emoji">🎯</span> ${dataQuality.total_coaching_records || data.coaching_activity?.current?.total_coaching_sessions} coaching records</span>
+                </div>
+            `;
+            
+            // Performance Metrics Card
+            html += `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Performance Metrics</h3>
+                    </div>
+                    <div class="metric-comparison">
+                        <div>
+                            <div class="metric-value">${data.snapshot_metadata?.comparison?.current_value || 'N/A'}</div>
+                            <div class="metric-label">${data.snapshot_metadata?.comparison?.current_period}</div>
+                        </div>
+                        <div>
+                            <div class="metric-value">${data.snapshot_metadata?.comparison?.previous_value || 'N/A'}</div>
+                            <div class="metric-label">${data.snapshot_metadata?.comparison?.previous_period}</div>
+                        </div>
+                        <div>
+                            <div class="change-indicator ${getChangeClass(data.snapshot_metadata?.comparison?.change)}">
+                                ${getChangeIcon(data.snapshot_metadata?.comparison?.change)} ${data.snapshot_metadata?.comparison?.change || 'N/A'}
+                            </div>
+                            <div class="metric-label">${data.snapshot_metadata?.comparison?.percent_change || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; text-align: center; color: #6c757d;">
+                        <strong>${data.snapshot_metadata?.metric}</strong> • ${data.snapshot_metadata?.programs_count} programs analyzed
+                    </div>
+                </div>
+            `;
+            
+            // Coaching Activity Card
+            const currentEffectiveness = parseEffectiveness(data.coaching_activity?.current?.coaching_effectiveness, dataQuality);
+            const previousEffectiveness = parseEffectiveness(data.coaching_activity?.previous?.coaching_effectiveness, dataQuality);
+            
+            // Check if no coaching data was found and show helpful message
+            const hasNoCoachingData = (data.coaching_activity?.current?.total_coaching_sessions || 0) === 0 && 
+                                      (data.coaching_activity?.previous?.total_coaching_sessions || 0) === 0;
+            const availableMonths = data.debug_info?.available_months_in_db || [];
+            const searchingForMonths = data.debug_info?.search_criteria?.current_coaching_months || [];
+            
+            html += `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Coaching Activity Overview</h3>
+                    </div>
+                    ${hasNoCoachingData && availableMonths.length > 0 ? `
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="font-weight: bold; color: #856404; margin-bottom: 8px;">⚠️ No coaching data found for selected months</div>
+                        <div style="color: #856404; font-size: 0.9rem;">
+                            <div style="margin-bottom: 4px;">Searching for: <strong>${searchingForMonths.join(', ')}</strong></div>
+                            <div>Available months in database: <strong>${availableMonths.join(', ')}</strong></div>
+                            <div style="margin-top: 8px; font-size: 0.85rem;">💡 Tip: Select months that include ${availableMonths[0]} or later to see coaching data.</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    <div class="coaching-comparison">
+                        <div class="coaching-period">
+                            <div class="coaching-sessions">${data.coaching_activity?.current?.total_coaching_sessions || 0}</div>
+                            <div class="coaching-effectiveness">
+                                <strong>Effectiveness:</strong> ${currentEffectiveness.percentage}
+                                ${currentEffectiveness.coverage ? `<br><small>(${currentEffectiveness.coverage})</small>` : ''}
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.9rem; color: #6c757d;">${data.coaching_activity?.current?.period_label}</div>
+                        </div>
+                        <div class="coaching-period">
+                            <div class="coaching-sessions">${data.coaching_activity?.previous?.total_coaching_sessions || 0}</div>
+                            <div class="coaching-effectiveness">
+                                <strong>Effectiveness:</strong> ${previousEffectiveness.percentage}
+                                ${previousEffectiveness.coverage ? `<br><small>(${previousEffectiveness.coverage})</small>` : ''}
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.9rem; color: #6c757d;">${data.coaching_activity?.previous?.period_label}</div>
+                        </div>
+                    </div>
+                    <div class="coaching-change">
+                        <div class="change-indicator ${getChangeClass(data.coaching_activity?.change?.coaching_volume_change)}">
+                            ${getChangeIcon(data.coaching_activity?.change?.coaching_volume_change)} ${data.coaching_activity?.change?.coaching_volume_change} sessions
+                        </div>
+                        <div style="margin-top: 5px; color: #6c757d;">
+                            ${data.coaching_activity?.change?.coaching_volume_change_pct} • ${data.coaching_activity?.change?.effectiveness_change}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Top Behaviors Card
+            const currentBehaviors = data.coaching_activity?.current?.top_behaviors || [];
+            const previousBehaviors = data.coaching_activity?.previous?.top_behaviors || [];
+            
+            html += `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Top Coaching Behaviors</h3>
+                    </div>
+                    <div id="behaviors-container">
+                        ${currentBehaviors.length > 0 || previousBehaviors.length > 0 
+                            ? generateBehaviorsSection(currentBehaviors, previousBehaviors)
+                            : '<div class="no-data"><div class="no-data-icon">📊</div><p>No coaching behavior data available for the selected periods.</p></div>'
+                        }
+                    </div>
+                </div>
+            `;
+            
+            // Action Buttons
+            html += `
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="generateCaseStudy()">Generate Case Study</button>
+                    <button class="action-btn" onclick="generateSlides()">Generate Slides</button>
+                </div>
+            `;
+            
+            // Case Study Box (initially hidden)
+            html += `
+                <div id="case-study-box" class="case-study-box">
+                    <h3 style="margin-top: 0; color: #667eea;">Generated Case Study</h3>
+                    <div id="case-study-content" class="case-study-content"></div>
+                    <div class="case-study-actions">
+                        <button class="action-btn" onclick="copyCaseStudy()">Copy Case Study</button>
+                        <button class="action-btn" onclick="regenerateCaseStudy()">Regenerate</button>
+                    </div>
+                </div>
+            `;
+            
+            resultsContent.innerHTML = html;
+            
+            // Add event listeners for behavior expansion
+            addBehaviorEventListeners();
+        }
+        
+        function displayError(message) {
+            resultsContent.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+        
+        function getChangeClass(change) {
+            if (!change || change === 'N/A') return 'change-neutral';
+            const num = parseFloat(change);
+            if (isNaN(num)) return 'change-neutral';
+            return num >= 0 ? 'change-positive' : 'change-negative';
+        }
+        
+        function getChangeIcon(change) {
+            if (!change || change === 'N/A') return '→';
+            const num = parseFloat(change);
+            if (isNaN(num)) return '→';
+            return num >= 0 ? '↗' : '↘';
+        }
+        
+        function parseEffectiveness(effectivenessStr, dataQuality = null) {
+            if (!effectivenessStr) return { percentage: 'N/A', coverage: null };
+            
+            // Match pattern like "33.33% (based on 6 of 26 sessions)"
+            const match = effectivenessStr.match(/^([\d.]+)%\s*(?:\(([^)]+)\))?/);
+            if (match) {
+                return {
+                    percentage: match[1] + '%',
+                    coverage: match[2] || null
+                };
+            }
+            
+            // Fallback for simple percentage
+            const simpleMatch = effectivenessStr.match(/^([\d.]+)%/);
+            if (simpleMatch) {
+                return {
+                    percentage: simpleMatch[1] + '%',
+                    coverage: null
+                };
+            }
+            
+            return { percentage: 'N/A', coverage: null };
+        }
+        
+        function generateBehaviorsSection(currentBehaviors, previousBehaviors) {
+            // Create a map of previous behaviors for comparison
+            const previousMap = {};
+            previousBehaviors.forEach(behavior => {
+                previousMap[behavior.behavior] = behavior;
+            });
+            
+            return currentBehaviors.map((behavior, index) => {
+                const previous = previousMap[behavior.behavior];
+                const change = previous ? behavior.sessions - previous.sessions : 0;
+                const changePercent = previous && previous.sessions > 0 ? 
+                    ((change / previous.sessions) * 100).toFixed(1) : 'N/A';
+                
+                const changeIcon = change > 0 ? '⬆' : change < 0 ? '⬇' : '➡';
+                const changeClass = change > 0 ? 'change-positive' : change < 0 ? 'change-negative' : 'change-neutral';
+                
+                return `
+                    <div class="behavior-expandable" data-behavior-index="${index}">
+                        <div class="behavior-header" data-behavior-toggle="${index}">
+                            <div>
+                                <div class="behavior-title">#${index + 1}: ${behavior.behavior}</div>
+                                <div class="behavior-comparison">
+                                    <div>
+                                        <strong>${behavior.sessions} sessions (${behavior.percent_of_total})</strong>
+                                        <small style="display: block; color: #6b7280;">Current Period</small>
+                                    </div>
+                                    <div>
+                                        <strong>${previous ? previous.sessions : 0} sessions (${previous ? previous.percent_of_total : '0%'})</strong>
+                                        <small style="display: block; color: #6b7280;">Previous Period</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="behavior-change ${changeClass}">
+                                    ${changeIcon} ${Math.abs(change)} (${changePercent}%)
+                                </div>
+                                <div class="expand-icon">▼</div>
+                            </div>
+                        </div>
+                        <div class="behavior-content">
+                            <div class="sub-behaviors">
+                                <div style="margin-bottom: 15px; font-weight: 600; color: #374151;">
+                                    📊 Sub-behavior Breakdown
+                                </div>
+                                ${behavior.sub_behaviors && behavior.sub_behaviors.length > 0 ? behavior.sub_behaviors.map(subBehavior => `
+                                    <div class="sub-behavior-item">
+                                        <div class="sub-behavior-name">• ${subBehavior.sub_behavior || subBehavior.name || 'Unknown'}</div>
+                                        <div class="sub-behavior-stats">${subBehavior.sessions} sessions (${subBehavior.percent_of_behavior || subBehavior.percent || '0%'})</div>
+                                    </div>
+                                `).join('') : `
+                                    <div class="coming-soon">
+                                        📊 Sub-behavior data not available
+                                        <br><small>This behavior doesn't have detailed breakdown data</small>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function addBehaviorEventListeners() {
+            const behaviorHeaders = document.querySelectorAll('[data-behavior-toggle]');
+            behaviorHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const index = this.getAttribute('data-behavior-toggle');
+                    toggleBehavior(parseInt(index));
+                });
+            });
+        }
+        
+        function toggleBehavior(index) {
+            const behaviorItem = document.querySelector(`[data-behavior-index="${index}"]`);
+            if (!behaviorItem) return;
+            
+            const header = behaviorItem.querySelector('.behavior-header');
+            const content = behaviorItem.querySelector('.behavior-content');
+            const icon = header.querySelector('.expand-icon');
+            
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                header.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                header.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+        
+        function copyToClipboard(buttonElement) {
+            if (lastResponse) {
+                navigator.clipboard.writeText(JSON.stringify(lastResponse, null, 2))
+                    .then(() => {
+                        const btn = buttonElement || document.querySelector('.action-btn');
+                        if (btn) {
+                            const originalText = btn.textContent;
+                            btn.textContent = 'Copied!';
+                            btn.style.background = '#28a745';
+                            btn.style.color = 'white';
+                            setTimeout(() => {
+                                btn.textContent = originalText;
+                                btn.style.background = 'white';
+                                btn.style.color = '#667eea';
+                            }, 2000);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy:', err);
+                        alert('Failed to copy to clipboard. Error: ' + err.message);
+                    });
+            } else {
+                alert('No data available to copy');
+            }
+        }
+        
+        let generatedCaseStudy = '';
+        
+        async function generateCaseStudy() {
+            if (!lastResponse) {
+                alert('No data available. Please generate a snapshot first.');
+                return;
+            }
+            
+            // Show loading state
+            const caseStudyBox = document.getElementById('case-study-box');
+            const caseStudyContent = document.getElementById('case-study-content');
+            const generateBtn = document.querySelector('.action-btn[onclick="generateCaseStudy()"]');
+            
+            if (caseStudyBox && caseStudyContent) {
+                caseStudyContent.textContent = 'Generating case study...';
+                caseStudyBox.classList.add('visible');
+                if (generateBtn) {
+                    generateBtn.disabled = true;
+                    generateBtn.textContent = 'Generating...';
+                }
+            }
+            
+            try {
+                // Determine API URL
+                const apiUrl = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:3000/api/case-study'
+                    : '/api/case-study';
+                
+                console.log('Generating case study via API:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        snapshotData: lastResponse
+                    })
+                }).catch(fetchError => {
+                    console.error('Fetch error details:', fetchError);
+                    throw new Error(`Network error: ${fetchError.message}. Please check if the API endpoint is accessible.`);
+                });
+                
+                if (!response.ok) {
+                    const contentType = response.headers.get('content-type') || '';
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    
+                    if (contentType.includes('application/json')) {
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.message || errorData.error || errorMessage;
+                        } catch (e) {
+                            // If JSON parsing fails, use default message
+                        }
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                const data = await response.json();
+                generatedCaseStudy = data.case_study || '';
+                
+                if (!generatedCaseStudy) {
+                    throw new Error('Case study generation returned empty result');
+                }
+                
+                // Display the case study
+                if (caseStudyBox && caseStudyContent) {
+                    caseStudyContent.textContent = generatedCaseStudy;
+                    caseStudyBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                
+            } catch (error) {
+                console.error('Error generating case study:', error);
+                if (caseStudyContent) {
+                    caseStudyContent.textContent = `Error generating case study: ${error.message}`;
+                }
+                alert('Failed to generate case study: ' + error.message);
+            } finally {
+                if (generateBtn) {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Generate Case Study';
+                }
+            }
+        }
+        
+        function copyCaseStudy() {
+            if (generatedCaseStudy) {
+                navigator.clipboard.writeText(generatedCaseStudy)
+                    .then(() => {
+                        const btn = document.querySelector('.case-study-actions .action-btn');
+                        if (btn) {
+                            const originalText = btn.textContent;
+                            btn.textContent = 'Copied!';
+                            btn.style.background = '#28a745';
+                            btn.style.color = 'white';
+                            setTimeout(() => {
+                                btn.textContent = originalText;
+                                btn.style.background = '';
+                                btn.style.color = '';
+                            }, 2000);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy:', err);
+                        alert('Failed to copy case study to clipboard');
+                    });
+            } else {
+                alert('No case study generated. Please generate a case study first.');
+            }
+        }
+        
+        function regenerateCaseStudy() {
+            generateCaseStudy();
+        }
+        
+        function generateSlides() {
+            // Placeholder - does nothing as requested
+            console.log('Generate Slides clicked (no action)');
+        }
+        
+        // Initialize client selection validation
+        handleClientSelection();
+        
+        // PRANK: Make the button move away when clicked or when mouse approaches
+        function initializeButtonPrank() {
+            const button = document.getElementById('submitBtn');
+            const wrapper = button.closest('.submit-btn-wrapper');
+            const formSection = document.querySelector('.form-section');
+            
+            if (!button || !wrapper || !formSection) return;
+            
+            // Initialize position variables
+            let currentX = 0;
+            let currentY = 0;
+            let isInitialized = false;
+            
+            // Function to initialize button position
+            function initButtonPosition() {
+                if (isInitialized) return;
+                
+                const buttonRect = button.getBoundingClientRect();
+                const formRect = formSection.getBoundingClientRect();
+                
+                // Only proceed if we have valid dimensions
+                if (buttonRect.width === 0 || formRect.width === 0) {
+                    // Retry after a short delay
+                    setTimeout(initButtonPosition, 50);
+                    return;
+                }
+                
+                // Calculate original position relative to form section
+                const originalX = buttonRect.left - formRect.left;
+                const originalY = buttonRect.top - formRect.top;
+                const originalWidth = buttonRect.width;
+                
+                // Ensure form section is the positioning context
+                if (getComputedStyle(formSection).position === 'static') {
+                    formSection.style.position = 'relative';
+                }
+                
+                // Move button to be a direct child of form section for simpler positioning
+                formSection.appendChild(button);
+                
+                // Change button to absolute positioning relative to form section
+                button.style.position = 'absolute';
+                button.style.width = originalWidth + 'px';
+                button.style.margin = '0';
+                button.style.zIndex = '1000';
+                button.style.visibility = 'visible';
+                button.style.opacity = '1';
+                button.style.display = 'block';
+                
+                // Set initial position to original location
+                currentX = originalX;
+                currentY = originalY;
+                button.style.left = currentX + 'px';
+                button.style.top = currentY + 'px';
+                
+                // Make wrapper maintain minimal height since button is absolute
+                wrapper.style.minHeight = '60px';
+                wrapper.style.overflow = 'visible';
+                
+                isInitialized = true;
+            }
+            
+            // Get the button's current position - wait for layout
+            setTimeout(function() {
+                requestAnimationFrame(initButtonPosition);
+            }, 150);
+            
+            // Get boundaries for button movement
+            function getBoundaries() {
+                const formRect = formSection.getBoundingClientRect();
+                const buttonRect = button.getBoundingClientRect();
+                
+                return {
+                    minX: 20,
+                    maxX: formRect.width - buttonRect.width - 20,
+                    minY: 20,
+                    maxY: formRect.height - buttonRect.height - 20,
+                    formLeft: formRect.left,
+                    formTop: formRect.top
+                };
+            }
+            
+            // Move button a small distance away from mouse cursor
+            function scootButtonAway(mouseX, mouseY) {
+                if (button.disabled || !isInitialized) return;
+                
+                const bounds = getBoundaries();
+                const buttonRect = button.getBoundingClientRect();
+                const formRect = formSection.getBoundingClientRect();
+                
+                // Calculate button center relative to form section
+                const buttonCenterX = currentX + buttonRect.width / 2;
+                const buttonCenterY = currentY + buttonRect.height / 2;
+                
+                // Calculate direction from mouse to button
+                const dx = buttonCenterX - mouseX;
+                const dy = buttonCenterY - mouseY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Normalize direction
+                const dirX = distance > 0 ? dx / distance : 0;
+                const dirY = distance > 0 ? dy / distance : 0;
+                
+                // Move button 80-120px away in the direction away from mouse
+                const moveDistance = 80 + Math.random() * 40;
+                let newX = buttonCenterX + dirX * moveDistance - buttonRect.width / 2;
+                let newY = buttonCenterY + dirY * moveDistance - buttonRect.height / 2;
+                
+                // If button is too close to mouse, move it further
+                if (distance < 50) {
+                    newX = buttonCenterX + dirX * (moveDistance + 50) - buttonRect.width / 2;
+                    newY = buttonCenterY + dirY * (moveDistance + 50) - buttonRect.height / 2;
+                }
+                
+                // Keep within bounds
+                newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX));
+                newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY));
+                
+                currentX = newX;
+                currentY = newY;
+                button.style.left = currentX + 'px';
+                button.style.top = currentY + 'px';
+            }
+            
+            // Move button when mouse gets close (within 100px)
+            document.addEventListener('mousemove', function(e) {
+                if (button.disabled || !isInitialized) return;
+                
+                const formRect = formSection.getBoundingClientRect();
+                
+                // Only track mouse if it's within the form section
+                if (e.clientX < formRect.left || e.clientX > formRect.right ||
+                    e.clientY < formRect.top || e.clientY > formRect.bottom) {
+                    return;
+                }
+                
+                // Calculate mouse position relative to form section
+                const mouseX = e.clientX - formRect.left;
+                const mouseY = e.clientY - formRect.top;
+                
+                const buttonRect = button.getBoundingClientRect();
+                const buttonCenterX = currentX + buttonRect.width / 2;
+                const buttonCenterY = currentY + buttonRect.height / 2;
+                
+                // Calculate distance from mouse to button center
+                const distance = Math.sqrt(
+                    Math.pow(mouseX - buttonCenterX, 2) + 
+                    Math.pow(mouseY - buttonCenterY, 2)
+                );
+                
+                // If mouse is within 100px of button, scoot it away
+                if (distance < 100) {
+                    scootButtonAway(mouseX, mouseY);
+                }
+            });
+            
+            // Move button on click attempt
+            button.addEventListener('click', function(e) {
+                if (!button.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const formRect = formSection.getBoundingClientRect();
+                    const mouseX = e.clientX - formRect.left;
+                    const mouseY = e.clientY - formRect.top;
+                    scootButtonAway(mouseX, mouseY);
+                }
+            });
+            
+            // Also move on mouseenter (hover)
+            button.addEventListener('mouseenter', function(e) {
+                if (!button.disabled) {
+                    const formRect = formSection.getBoundingClientRect();
+                    const mouseX = e.clientX - formRect.left;
+                    const mouseY = e.clientY - formRect.top;
+                    scootButtonAway(mouseX, mouseY);
+                }
+            });
+            
+            // Move on touch (mobile)
+            button.addEventListener('touchstart', function(e) {
+                if (!button.disabled) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const formRect = formSection.getBoundingClientRect();
+                    const mouseX = touch.clientX - formRect.left;
+                    const mouseY = touch.clientY - formRect.top;
+                    scootButtonAway(mouseX, mouseY);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
