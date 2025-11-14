@@ -1597,41 +1597,9 @@
                 button.style.top = currentY + 'px';
             }
             
-            // Move button when mouse gets close (within 100px)
-            document.addEventListener('mousemove', function(e) {
-                if (button.disabled || !isInitialized) return;
-                
-                const formRect = formSection.getBoundingClientRect();
-                
-                // Only track mouse if it's within the form section
-                if (e.clientX < formRect.left || e.clientX > formRect.right ||
-                    e.clientY < formRect.top || e.clientY > formRect.bottom) {
-                    return;
-                }
-                
-                // Calculate mouse position relative to form section
-                const mouseX = e.clientX - formRect.left;
-                const mouseY = e.clientY - formRect.top;
-                
-                const buttonRect = button.getBoundingClientRect();
-                const buttonCenterX = currentX + buttonRect.width / 2;
-                const buttonCenterY = currentY + buttonRect.height / 2;
-                
-                // Calculate distance from mouse to button center
-                const distance = Math.sqrt(
-                    Math.pow(mouseX - buttonCenterX, 2) + 
-                    Math.pow(mouseY - buttonCenterY, 2)
-                );
-                
-                // If mouse is within 100px of button, scoot it away
-                if (distance < 100) {
-                    scootButtonAway(mouseX, mouseY);
-                }
-            });
-            
-            // Move button on click attempt
+            // Move button on click (desktop)
             button.addEventListener('click', function(e) {
-                if (!button.disabled) {
+                if (!button.disabled && isInitialized) {
                     e.preventDefault();
                     e.stopPropagation();
                     
@@ -1642,27 +1610,35 @@
                 }
             });
             
-            // Also move on mouseenter (hover)
-            button.addEventListener('mouseenter', function(e) {
-                if (!button.disabled) {
-                    const formRect = formSection.getBoundingClientRect();
-                    const mouseX = e.clientX - formRect.left;
-                    const mouseY = e.clientY - formRect.top;
-                    scootButtonAway(mouseX, mouseY);
-                }
-            });
-            
-            // Move on touch (mobile)
+            // Move on touch (mobile) - handle both touchstart and touchend for better mobile support
             button.addEventListener('touchstart', function(e) {
-                if (!button.disabled) {
+                if (!button.disabled && isInitialized) {
                     e.preventDefault();
-                    const touch = e.touches[0];
+                    e.stopPropagation();
+                    
+                    const touch = e.touches[0] || e.changedTouches[0];
                     const formRect = formSection.getBoundingClientRect();
-                    const mouseX = touch.clientX - formRect.left;
-                    const mouseY = touch.clientY - formRect.top;
-                    scootButtonAway(mouseX, mouseY);
+                    const touchX = touch.clientX - formRect.left;
+                    const touchY = touch.clientY - formRect.top;
+                    scootButtonAway(touchX, touchY);
                 }
-            });
+            }, { passive: false });
+            
+            // Also handle touchend in case touchstart doesn't fire
+            button.addEventListener('touchend', function(e) {
+                if (!button.disabled && isInitialized) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const touch = e.changedTouches[0];
+                    if (touch) {
+                        const formRect = formSection.getBoundingClientRect();
+                        const touchX = touch.clientX - formRect.left;
+                        const touchY = touch.clientY - formRect.top;
+                        scootButtonAway(touchX, touchY);
+                    }
+                }
+            }, { passive: false });
         }
     </script>
 </body>
