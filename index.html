@@ -147,7 +147,7 @@
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
             z-index: 1000;
         }
@@ -1555,7 +1555,7 @@
                 };
             }
             
-            // Move button to a completely random position on the screen
+            // Move button to a completely random position on the screen (instant jump)
             function moveButtonRandomly() {
                 if (button.disabled || !isInitialized) return;
                 
@@ -1573,11 +1573,23 @@
                 const randomX = Math.random() * (maxX - minX) + minX;
                 const randomY = Math.random() * (maxY - minY) + minY;
                 
-                // Update position
+                // Disable transition for instant jump
+                const originalTransition = button.style.transition;
+                button.style.transition = 'none';
+                
+                // Update position instantly
                 currentX = randomX;
                 currentY = randomY;
                 button.style.left = currentX + 'px';
                 button.style.top = currentY + 'px';
+                
+                // Force reflow to ensure instant position change
+                void button.offsetWidth;
+                
+                // Restore transition after a tiny delay (for hover effects)
+                setTimeout(function() {
+                    button.style.transition = originalTransition || '';
+                }, 10);
             }
             
             // Move button on click (desktop) - button does nothing except move
