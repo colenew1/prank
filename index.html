@@ -743,7 +743,7 @@
         });
         
         function initializeEventListeners() {
-            // Form submission
+            // Form submission - but we'll prevent it if button is clicked (handled in prank function)
             form.addEventListener('submit', handleFormSubmit);
             
             // Comparison type toggle
@@ -1555,59 +1555,42 @@
                 };
             }
             
-            // Move button a small distance away from mouse cursor
-            function scootButtonAway(mouseX, mouseY) {
+            // Move button to a completely random position on the screen
+            function moveButtonRandomly() {
                 if (button.disabled || !isInitialized) return;
                 
                 const bounds = getBoundaries();
                 const buttonRect = button.getBoundingClientRect();
-                const formRect = formSection.getBoundingClientRect();
                 
-                // Calculate button center relative to form section
-                const buttonCenterX = currentX + buttonRect.width / 2;
-                const buttonCenterY = currentY + buttonRect.height / 2;
+                // Calculate completely random position within form section bounds
+                const padding = 20;
+                const minX = bounds.minX + padding;
+                const maxX = bounds.maxX - padding;
+                const minY = bounds.minY + padding;
+                const maxY = bounds.maxY - padding;
                 
-                // Calculate direction from mouse to button
-                const dx = buttonCenterX - mouseX;
-                const dy = buttonCenterY - mouseY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // Generate random position
+                const randomX = Math.random() * (maxX - minX) + minX;
+                const randomY = Math.random() * (maxY - minY) + minY;
                 
-                // Normalize direction
-                const dirX = distance > 0 ? dx / distance : 0;
-                const dirY = distance > 0 ? dy / distance : 0;
-                
-                // Move button 80-120px away in the direction away from mouse
-                const moveDistance = 80 + Math.random() * 40;
-                let newX = buttonCenterX + dirX * moveDistance - buttonRect.width / 2;
-                let newY = buttonCenterY + dirY * moveDistance - buttonRect.height / 2;
-                
-                // If button is too close to mouse, move it further
-                if (distance < 50) {
-                    newX = buttonCenterX + dirX * (moveDistance + 50) - buttonRect.width / 2;
-                    newY = buttonCenterY + dirY * (moveDistance + 50) - buttonRect.height / 2;
-                }
-                
-                // Keep within bounds
-                newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX));
-                newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY));
-                
-                currentX = newX;
-                currentY = newY;
+                // Update position
+                currentX = randomX;
+                currentY = randomY;
                 button.style.left = currentX + 'px';
                 button.style.top = currentY + 'px';
             }
             
-            // Move button on click (desktop)
+            // Move button on click (desktop) - button does nothing except move
             button.addEventListener('click', function(e) {
                 if (!button.disabled && isInitialized) {
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
                     
-                    const formRect = formSection.getBoundingClientRect();
-                    const mouseX = e.clientX - formRect.left;
-                    const mouseY = e.clientY - formRect.top;
-                    scootButtonAway(mouseX, mouseY);
+                    // Move to random position
+                    moveButtonRandomly();
                 }
+                return false;
             });
             
             // Move on touch (mobile) - handle both touchstart and touchend for better mobile support
@@ -1615,13 +1598,12 @@
                 if (!button.disabled && isInitialized) {
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
                     
-                    const touch = e.touches[0] || e.changedTouches[0];
-                    const formRect = formSection.getBoundingClientRect();
-                    const touchX = touch.clientX - formRect.left;
-                    const touchY = touch.clientY - formRect.top;
-                    scootButtonAway(touchX, touchY);
+                    // Move to random position
+                    moveButtonRandomly();
                 }
+                return false;
             }, { passive: false });
             
             // Also handle touchend in case touchstart doesn't fire
@@ -1629,16 +1611,24 @@
                 if (!button.disabled && isInitialized) {
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
                     
-                    const touch = e.changedTouches[0];
-                    if (touch) {
-                        const formRect = formSection.getBoundingClientRect();
-                        const touchX = touch.clientX - formRect.left;
-                        const touchY = touch.clientY - formRect.top;
-                        scootButtonAway(touchX, touchY);
-                    }
+                    // Move to random position
+                    moveButtonRandomly();
                 }
+                return false;
             }, { passive: false });
+            
+            // Prevent form submission when button is clicked - add with capture phase to run first
+            form.addEventListener('submit', function(e) {
+                // Always prevent if button was the submitter
+                if (e.submitter === button || button.contains(e.target)) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    moveButtonRandomly();
+                    return false;
+                }
+            }, true); // Use capture phase to intercept before other handlers
         }
     </script>
 </body>
